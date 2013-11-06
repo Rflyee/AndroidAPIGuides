@@ -1,0 +1,74 @@
+应用程序基础之02-应用程序组件篇
+
+应用程序组件是一个Android应用程序关键的基石。每一个组件都是系统进入应用程序的不同入口点。对用户而言，并不是所有的组件都是实际入口点，它们之间有一些依赖，但是每一个组件的存在都有它自己的入点，并且扮演着一个特定的角色---每一个组件都是独一无二的构建模块，帮助定义你的应用的整体行为。
+
+有四个不同类型的应用组件。每一种类型都完成特定的目的，每种类型都有一个不同的生命周期来定义该组件的创建和销毁。
+
+下面是这四种类型组件的介绍：
+
+Activitys
+	一个activity显示一个屏幕，代表一个用户接口（视图）。例如，一个邮件应用会有一个activity展示新邮件列表，一个activity用来写邮件，另一个activity用于读取邮件。在一个邮件应用中尽管所有的activity一起工作形成一个完整的用户体验，但是每一个activity之间却是相互独立的。正因为如此，一个不同的应用可以启动该邮件应用的这些activity中的任意一个（前提是邮件应用允许）。例如，一个照相应用可以启动邮件的一个activity来发送新的邮件，来让用户分享一个图片。
+
+	每一个activity被作为Activity类的子类来实现，你可以在开发指南中的“Activitys”章节了解到更多。
+
+Services
+	service是运行在后台的组件，它一般执行长时间的操作或者执行远程进程工作。一个service不提供用户接口（视图）。例如，当用户在使用另一个不同应用时，一个service可能在后台播放音乐;或者在不妨碍用户互动的情况下通过网络抓取数据。其它的组件（比如一个activity）可以启动一个service，让它单独运行或者绑定到这个activity以便进行交互操作。
+
+	每一个service被作为Service类的子类来实现，你可以在开发指南中的“Service”章节中了解到更多。
+
+Content providers
+	content provider管理一组共享的应用程序数据集。你可以将数据储存在文件系统、SQLite数据库、网络或者任何其它你的应用可以访问到的持久存储位置。通过content provider，其它的应用可以请求甚至编辑共享的数据（前提是content provider允许）。例如，Android系统提供一个content provider来管理用户的通讯信息。因此，任何拥有合理权限的应用都可以查询content provider的部分数据来读取和写入关于某个人的信息。
+
+	content provider对于读取或者写入应用的私有不分享数据也是非常有帮助的，例如Note Pad应用便是用一个content provider来保存笔记的。
+	
+	每一个content provider被作为ContentProvider类的子类来实现，并且必须实现一组标准的APIs以便使其它应用执行交换操作。关于content provider更多的信息，请看开发指南中“Content Provider”章节。
+
+
+Broadcast receivers
+	broadcast receivers是一个响应系统广播通知的组件。很多广播都来源于系统，例
+	如屏幕关闭、电量过低或者图片被捕获等。应用程序也能发起广播，例如让其他应用
+	程序知道一些数据已经下载到设备，并且它们可以使用了。尽管broadcast receivers不能显示用户接口(视图)，但是当一个广播事件发生时它们可以创建一个状态栏通知来提醒用户。但是大多数情况下，一个broadcast receivers 仅仅是进入其他应用组件的一个途径，并且只做极少量的工作。例如，一个broadcase receivers会基于某个事件启动一个service来完成相应的工作（译者注：整个过程中broadcast receivers所做的仅仅是启动一个service，大部分工作却由service完成）。
+	
+	broadcast receivers作为Broadcast receivers类的子类被实现，每一个广播作为一个Intent对象传递。更多详细信息请关注BroadcastReceivers类。
+
+Android系统设计的一个独一无二的方面是任何一个应用都可以启动其他应用中的组件。例如，如果你想让用户使用设备的相机拍摄一张图片，可能有其他应用已经完成了此项功能，那么你的应用就可以直接使用此功能，而不用自己再次开发一个activity去拍摄图片。你的应用中不需要包含甚至不需要连接相机应用中的代码。反而，你可以简单地启动相机应用的一个activity组件来拍摄图片。拍摄完成之后，图片甚至可以返回给你的应用，因此你可以使用它。对于用户来说，看起来相机好像是你的应用的一部分。
+
+当系统启动一个组件时，它实际上为该应用（如果该应用并非在运行中）启动了一个进程，并且实例化组件需要的所有类。例如，如果你的应用启动相机应用的一个activity来拍摄照片，该activity是运行在相机应用的进程中而并非你的应用进程。因此，不像大多数其他系统的应用一样，Android系统应用程序没有单独的入口点（例如没有main()函数）。
+
+因为系统在单独的进程中运行每一个应用程序，而这些进程带有文件权限，严格限制了对其他应用程序的访问，因此你的应用不能直接激活其他应用程序中的组件。但是Android系统当然是可以激活应用程序中的组件的，所以你必须向系统发送一条消息指定你的intent来启动特定的组件。这样系统便可以为你激活所需的组件了。
+
+激活组件(Activiting Components)
+四种组件类型中的三个——activitys、services和broadcast
+receivers，都是被一个叫做intent的异步消息激活的。在运行时，intents将单个的组件与其他组件绑定，不管组件是属于你的应用还是属于其他的应用（你可以把intents想象成信使，用于请求其他组件的动作）。
+
+一个intent作为一个Intent类的对象被创建，intent定义消息来激活某个特定的组件或者一类特定的组件。一个intent可以是显式的也可以是隐式的。
+
+对于activity和service，一个intent定义了一个要执行的动作（例如，让“view”或者“send”些什么），也可能指定了要操作的URI类型的数据（其中有一些在其他组件启动的时候是需要用到的）。例如，一个intent会给一个activity传达一个请求去显式一个图片或者打开一个web页面。在某些情况下，你也可以通过启动一个activity来接受结果，这种情况下，activity将通过intent返回结果（例如，你可以指派一个intent为用户获取个人的联系信息，然后让它返回给你——返回的intent包含一个指向选定的联系信息的URI）。
+
+对于broadcast receivers，intent简单地定义了被广播的公告（例如，一个要指出设备电量过低的广播仅仅包含了一个动作字符串，表示“电量过低”）。
+
+最后一个组件类型content
+provider并不被intent激活。准确的说，它是在被作为ContentResolver的请求对象时被激活的。content
+resolver处理所有与content
+provider之间的直接交互，因此这个组件执行和提供者（provider）之间的交互，并不需要。。。。
+（略）
+
+下面是激活每个类型组件的方法：
+*你可以通过传递一个intent参数给startActivity()或者startActivityForResult()方法（当你期望activity返回结果时）来启动一个activity（或者让已经存在的activity做一些新的事情）。
+*你可以通过传递一份intent参数给startService()来启动一个service（或者给正在运行中的service一些新的指令）。你还可以通过传递一个intent给bindService()来绑定一个service。
+*你可以通过传递一个intent给sendBroadcast()、sendOrderedBroadcast()或者sendStickyBroadcast()这样的方法来初始化一个广播。
+*你可以调用ContentResover类的query()方法来对content provider进行查询。
+
+关于使用intent的更加详细的信息请查看Intents and Intent Fiters文档。更多关于激活特定组件的信息也会在后边的Activities,Services,BroadcastReceiver and Content Providers文档中提供。
+
+
+
+
+
+
+
+
+
+
+
+
